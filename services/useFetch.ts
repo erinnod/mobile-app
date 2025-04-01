@@ -1,0 +1,40 @@
+// can be fetchMovies or movieDetails etc
+
+import { useEffect, useState } from 'react'
+
+const useFetch = <T>(fetchFunction: () => Promise<T>, autoFetch = true) => {
+	const [data, setData] = useState<T | []>([])
+	const [loading, setLoading] = useState(false)
+	const [error, setError] = useState<Error | null>(null)
+
+	const fetchData = async () => {
+		try {
+			setLoading(true)
+			setError(null)
+
+			const result = await fetchFunction()
+			setData(result)
+		} catch (error) {
+			// @ts-ignore
+			setError(error instanceof Error ? error : new Error('An error occurred'))
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const reset = () => {
+		setData([])
+		setError(null)
+		setLoading(false)
+	}
+
+	useEffect(() => {
+		if (autoFetch) {
+			fetchData()
+		}
+	}, [autoFetch])
+
+	return { data, loading, error, reset, refetch: fetchData }
+}
+
+export default useFetch
